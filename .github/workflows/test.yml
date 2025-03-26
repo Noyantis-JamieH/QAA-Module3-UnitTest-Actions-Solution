@@ -22,7 +22,7 @@ jobs:
         run: mvn clean package
       - name: set up artifacts
         run: mkdir artifacts && cp test.log target/*.jar artifacts
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Package
           path: artifacts
