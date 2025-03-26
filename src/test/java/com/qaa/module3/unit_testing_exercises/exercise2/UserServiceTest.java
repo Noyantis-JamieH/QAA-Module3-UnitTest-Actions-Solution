@@ -1,112 +1,138 @@
 package com.qaa.module3.unit_testing_exercises.exercise2;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class UserServiceTest {
-	
-	private UserService service;
+import static org.junit.jupiter.api.Assertions.*;
 
-	/*
-	Junit is not invoking the setUp and tearDown methods, so as a workaround
-	they are currently invoked manually at the start/end of each test.
-	*/
+class UserServiceTest {
 
-	@BeforeEach
-	public void setUp() {
-		service = new UserService();
-	}
+    private UserService userService;
 
-	@AfterEach
-	public void tearDown() {
-		service = null;
-	}
+    @BeforeEach
+    void setUp() {
+        userService = new UserService();
+    }
 
-	@Test
-	public void testRegisterValidDetails() {
-		setUp();
-		// Arrange
-		String username = "bobby", password = "Codes123";
-		String expected = username;
-		
-		// Act
-		String actual = service.register(username, password);
-		
-		// Assert
-		Assertions.assertEquals(expected, actual);
-		tearDown();
-	}
+    @AfterEach
+    void tearDown() {
+        userService = null;
+    }
 
-	@Test
-	public void testRegisterInvalidPasswordNoNumbers() {
-		setUp();
-		// Arrange
-		String username = "bobby", password = "CodesAlot";
-		String expected = "Password must contain at least 1 number character";
-		
-		try {
-			// Act
-			service.register(username, password);
-			fail("Expected an illegal argument exception due to missing number characters.");
-		} catch (IllegalArgumentException iae) {
-			// Assert
-			Assertions.assertEquals(expected, iae.getMessage());
-		}
-		tearDown();
-	}
-	
-	@Test
-	public void testRegisterInvalidPasswordNoUppercaseLetter() {
-		setUp();
-		// Arrange
-		String username = "bobby", password = "codes123";
-		String expected = "Password must contain at least 1 uppercase character";
-		
-		// Act
-		IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			service.register(username, password);
-		}, "Expected an illegal argument exception due to missing uppercase characters.");
-		
-		// Assert
-		Assertions.assertEquals(expected, iae.getMessage());
-		tearDown();
-	}
-	
-	@Test
-	public void testLoginValidDetails() {
-		setUp();
-		// Arrange
-		String username = "bobby", password = "Codes123";
-		String expected = username;
-		service.register(username, password);
-		
-		// Act
-		String actual = service.login(username, password);
-		
-		// Assert
-		Assertions.assertEquals(expected, actual);
-		tearDown();
-	}
-	
-	@Test
-	public void testLoginInvalidDetailsIncorrectPassword() {
-		setUp();
-		// Arrange
-		String username = "bobby", password = "Codes123", wrongPassword = "Codes12";
-		String expected = "Invalid password supplied";
-		service.register(username, password);
-		
-		// Act
-		IllegalArgumentException iae = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			service.login(username, wrongPassword);
-		}, "Expected an illegal argument exception due to incorrect password on login.");
-		
-		// Assert
-		Assertions.assertEquals(expected, iae.getMessage());
-		tearDown();
-	}
+    @Test
+    void register_withValidData_shouldRegisterUser() {
+        String username = "testUser";
+        String password = "Password1";
+        String result = userService.register(username, password);
+        assertEquals(username, result);
+    }
+
+    @Test
+    void register_withNullUsername_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register(null, "Password1");
+        });
+        assertEquals("Username must not be null", exception.getMessage());
+    }
+
+    @Test
+    void register_withEmptyUsername_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("   ", "Password1");
+        });
+        assertEquals("Username must not be whitespace only", exception.getMessage());
+    }
+
+    @Test
+    void register_withShortUsername_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("usr", "Password1");
+        });
+        assertEquals("Username must contain at least 4 characters", exception.getMessage());
+    }
+
+    @Test
+    void register_withExistingUsername_shouldThrowException() {
+        userService.register("testUser", "Password1");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "Password2");
+        });
+        assertEquals("Username already exists", exception.getMessage());
+    }
+
+    @Test
+    void register_withNullPassword_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", null);
+        });
+        assertEquals("Password must not be null", exception.getMessage());
+    }
+
+    @Test
+    void register_withEmptyPassword_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "   ");
+        });
+        assertEquals("Password must not be whitespace only", exception.getMessage());
+    }
+
+    @Test
+    void register_withShortPassword_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "Pass1");
+        });
+        assertEquals("Password must contain at least 6 characters", exception.getMessage());
+    }
+
+    @Test
+    void register_withPasswordWithoutUppercase_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "password1");
+        });
+        assertEquals("Password must contain at least 1 uppercase character", exception.getMessage());
+    }
+
+    @Test
+    void register_withPasswordWithoutLowercase_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "PASSWORD1");
+        });
+        assertEquals("Password must contain at least 1 lowercase character", exception.getMessage());
+    }
+
+    @Test
+    void register_withPasswordWithoutNumber_shouldThrowException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.register("testUser", "Password");
+        });
+        assertEquals("Password must contain at least 1 number character", exception.getMessage());
+    }
+
+    @Test
+    void login_withValidData_shouldLoginUser() {
+        String username = "testUser";
+        String password = "Password1";
+        userService.register(username, password);
+        String result = userService.login(username, password);
+        assertEquals(username, result);
+    }
+
+    @Test
+    void login_withInvalidUsername_shouldThrowException() {
+        userService.register("testUser", "Password1");
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            userService.login("invalidUser", "Password1");
+        });
+        assertEquals("Invalid username supplied", exception.getMessage());
+    }
+
+    @Test
+    void login_withInvalidPassword_shouldThrowException() {
+        userService.register("testUser", "Password1");
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.login("testUser", "InvalidPassword");
+        });
+        assertEquals("Invalid password supplied", exception.getMessage());
+    }
 }
